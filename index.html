@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<title>Turma 301</title>
+<meta name="theme-color" content="#d93a3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Turma 301">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Caderno pautado: uma coluna, abas no topo, margem vermelha */
+:root {
+  --bg: #eef2f7; --paper: #ffffff; --ink: #1b2433; --muted: #5d6b80; --rule: #d6dee9;
+  --margin: #e0485a; --prova: #d93a3a; --prova-soft: #fde8e8; --tema: #e8811c; --tema-soft: #fdf0e1;
+  --ok: #2f9e5b; --focus: #2f6fdb;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #11161f; --paper: #1a212d; --ink: #e6ebf2; --muted: #98a4b6; --rule: #2a3444;
+    --margin: #ff6b7c; --prova: #ff6b6b; --prova-soft: #3a1f24; --tema: #f5a04a; --tema-soft: #3a2a18; --focus: #7aa7ff; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
+header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-block: calc(12px + env(safe-area-inset-top, 0px)) 10px; display: grid; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; margin: 0; }
+h1 span { color: var(--margin); }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.status { font-size: .8rem; color: var(--muted); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 4px; }
+.tab { appearance: none; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font: 700 1rem var(--body); padding: 12px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bottomnav:not([hidden]) { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--paper); border-top: 1px solid var(--rule); box-shadow: 0 -4px 16px rgba(0,0,0,.06); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; }
+.bottomnav .inner { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; width: 100%; max-width: 720px; }
+.bottomnav .tab { display: grid; justify-items: center; gap: 2px; font-size: .78rem; padding: 6px 2px; min-height: 54px; border-radius: 12px; }
+.bottomnav .tab[hidden] { display: none; }
+.bottomnav .ic { font-size: 1.3rem; line-height: 1.2; }
+.bottomnav .tab.plus .ic { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 1.2rem; }
+.bottomnav .tab.plus[aria-selected="true"] { background: transparent; color: var(--ink); }
+.tab[aria-selected="true"][data-t="admin"] { background: var(--bg); color: var(--ink); }
+.refresh { appearance: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; cursor: pointer; vertical-align: middle; margin-left: 4px; }
+.tab[aria-selected="true"][data-t="prova"] { background: var(--prova-soft); color: var(--prova); }
+.tab[aria-selected="true"][data-t="tema"] { background: var(--tema-soft); color: var(--tema); }
+.tab[aria-selected="true"][data-t="novo"] { background: var(--ink); color: var(--paper); }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.list { display: grid; gap: 10px; margin-top: 8px; }
+.row { appearance: none; width: 100%; text-align: left; cursor: pointer; background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; color: var(--ink); font: inherit; }
+.row .mat { font-family: var(--display); font-weight: 600; font-size: 1.2rem; overflow-wrap: anywhere; }
+.row .sub { font-size: .85rem; color: var(--muted); }
+.sub.soon { color: var(--margin); font-weight: 700; }
+.date { text-align: center; min-width: 52px; border-radius: 10px; padding: 4px 6px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.prova .date { background: var(--prova-soft); color: var(--prova); }
+.tema .date { background: var(--tema-soft); color: var(--tema); }
+.date b { display: block; font-family: var(--display); font-size: 1.3rem; }
+.date small { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+.chip { font-size: .75rem; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.chip.ready { background: var(--ink); color: var(--paper); }
+.chip.wait { border: 1px dashed var(--muted); color: var(--muted); }
+.card { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card h2 { font-family: var(--display); font-size: 1.2rem; margin: 0; }
+.dhead { border-left: 4px solid var(--prova); }
+.dhead.tema { border-left-color: var(--tema); }
+.dhead h2 { font-size: 1.6rem; font-weight: 800; }
+.block { background: var(--bg); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.block h3 { margin: 0 0 6px; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.block.caderno { background: repeating-linear-gradient(var(--paper), var(--paper) 23px, var(--rule) 24px); border: 1px solid var(--rule); line-height: 24px; }
+.txt p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.txt ul, .txt ol { margin: 0 0 6px; padding-left: 20px; }
+.txt h4 { font-family: var(--display); font-size: 1.1rem; margin: 16px 0 6px; }
+.txt h4:first-child { margin-top: 0; }
+.txt h5 { margin: 10px 0 4px; }
+.back, .link { appearance: none; border: 0; background: none; color: var(--focus); font: 700 .95rem var(--body); cursor: pointer; padding: 4px 0; justify-self: start; }
+.btn { appearance: none; border: 0; border-radius: 10px; padding: 13px 16px; font: 700 1rem var(--body); cursor: pointer; background: var(--ink); color: var(--paper); }
+.btn.alt { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+.btn.danger { background: var(--prova); color: #fff; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btns > .btn { flex: 1 1 140px; }
+.small { appearance: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 8px; font: 700 .75rem var(--body); padding: 4px 10px; cursor: pointer; text-transform: none; letter-spacing: 0; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields label { display: grid; gap: 4px; font-size: .8rem; color: var(--muted); font-weight: 700; min-width: 0; }
+.fields .full { grid-column: 1 / -1; }
+.fields input, .fields select, .fields textarea { font: 1rem var(--body); padding: 10px; border-radius: 8px; border: 1px solid var(--rule); background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+.fields textarea { resize: vertical; line-height: 1.45; }
+@media (max-width: 440px) { .fields { grid-template-columns: 1fr; } }
+.msg { border-radius: 10px; padding: 12px 14px; font-size: .95rem; }
+.msg.ok { background: color-mix(in srgb, var(--ok) 15%, var(--paper)); }
+.msg.err { background: var(--prova-soft); }
+.msg.info { background: var(--bg); color: var(--muted); }
+.hint { color: var(--muted); font-size: .9rem; margin: 0; }
+.empty { text-align: center; padding: 40px 16px; color: var(--muted); }
+.empty b { display: block; font-family: var(--display); font-size: 1.3rem; color: var(--ink); margin-bottom: 4px; }
+@media (max-width: 440px) {
+  h1 { font-size: 1.35rem; }
+  .row { grid-template-columns: auto 1fr; gap: 12px; padding: 12px; }
+  .row .chip { grid-column: 2; justify-self: start; margin-top: -6px; }
+  .row .mat { font-size: 1.1rem; }
+  .card { padding: 14px; }
+  .dhead h2 { font-size: 1.35rem; }
+  .btns > .btn { flex-basis: 100%; }
+}
+.btn { min-height: 48px; }
+.small { min-height: 32px; }
+.addcal { margin-top: 28px; font-size: .9rem; color: var(--muted); }
+.addcal a { color: var(--focus); font-weight: 700; }
+.addcal code { font-size: .75rem; word-break: break-all; background: var(--paper); padding: 2px 4px; border-radius: 4px; }
+[hidden] { display: none !important; }
+#who button { appearance: none; border: 0; background: none; color: var(--focus); font: 700 .8rem var(--body); cursor: pointer; padding: 0 0 0 6px; }
+.people { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.people th, .people td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+.people th { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+.scroll { overflow-x: auto; }
+.logline { font-size: .9rem; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.logline small { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top"><h1>Turma <span>301</span></h1><div class="status"><span id="status">Carregando…</span> <span id="who" hidden></span> <button class="refresh" id="refresh" type="button" aria-label="Atualizar" hidden>↻</button></div></div>
+  </header>
+  <main id="main"></main>
+  <section class="addcal" id="addcal" hidden>
+    <b>Quer receber os avisos no celular?</b> Adicione a agenda Turma 301:<br>
+    • Google Agenda: <a id="lkG" href="#" target="_blank" rel="noopener">abrir e tocar em Adicionar</a><br>
+    • iPhone / Samsung / Outlook: assine este endereço iCal: <code id="lkI"></code>
+  </section>
+</div>
+
+<nav class="bottomnav" id="tabs" role="tablist" hidden>
+  <div class="inner">
+    <button class="tab" role="tab" data-t="prova" aria-selected="true"><span class="ic">📕</span>Provas</button>
+    <button class="tab" role="tab" data-t="tema" aria-selected="false"><span class="ic">📝</span>Temas</button>
+    <button class="tab plus" role="tab" data-t="novo" aria-selected="false"><span class="ic">＋</span>Cadastrar</button>
+    <button class="tab" role="tab" data-t="admin" id="tabAdmin" aria-selected="false" hidden><span class="ic">👥</span>Acessos</button>
+  </div>
+</nav>
+<script>
+const WD = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+const MO = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const SUBJ = ["Língua Portuguesa", "Literatura", "Prática de Leitura e Escrita", "Matemática", "Química", "Biologia", "Física", "Itinerário Ciências da Natureza", "Geografia", "Itinerário Ciências Humanas", "Educação Física", "Projeto de Vida", "Sociologia", "História", "Filosofia", "Língua Inglesa", "Artes", "IA"];
+const TEACHERS = [
+  ["Ângela Gonçalves Delgado Ramos", "Matemática, Química, Física"], ["Francine Thielo Koch", "Língua Inglesa"],
+  ["Gabriel Bittencourt Borowski", "História, Filosofia, Sociologia"], ["Jéssica Dutra de Vargas", "Itinerário Eletivo"],
+  ["Jorge Luis Muller Kilpp", "Educação Física"], ["Marcelo Correa", "Biologia, Ciências"], ["Márcia Antunes de Matos", "Arte"],
+  ["Marisa Machado", "Educação Física"], ["Paulo Jovani dos Santos Trindade", "Física, Robótica, Linguagens e Códigos Digitais"],
+  ["Pedro Henrique Silva Spiess", "Língua Portuguesa, Literatura, Prática de Leitura e Escrita"],
+  ["Priscila Paz de Oliveira", "Matemática, Química, Ciências, Física, Biologia"], ["Vanessa Laukesen dos Santos Branco", "Geografia"]
+];
+// grade: matéria -> dias (1 = seg … 5 = sex)
+const GRADE = { "lingua portuguesa": [1, 4, 5], "literatura": [1], "pratica de leitura e escrita": [2], "matematica": [1, 3, 4], "quimica": [1, 5], "biologia": [1, 5], "fisica": [2], "itinerario ciencias da natureza": [2], "geografia": [2], "itinerario ciencias humanas": [4], "educacao fisica": [3], "projeto de vida": [3], "sociologia": [3], "historia": [3], "filosofia": [4], "lingua inglesa": [4], "artes": [5], "ia": [5] };
+
+const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+const dayNum = iso => { const [y, m, d] = iso.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 864e5); };
+const isoOf = n => new Date(n * 864e5).toISOString().slice(0, 10);
+function nextClass(materia) {
+  const days = GRADE[norm(materia)]; if (!days) return "";
+  const t = dayNum(todayISO());
+  for (let s = 1; s <= 14; s++) if (days.includes(new Date((t + s) * 864e5).getUTCDay())) return isoOf(t + s);
+  return "";
+}
+function rel(diff) { return diff === 0 ? "hoje" : diff === 1 ? "amanhã" : diff > 1 ? "em " + diff + " dias" : diff === -1 ? "foi ontem" : "foi há " + (-diff) + " dias"; }
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function inline(parent, line) {
+  const re = /\*\*(.+?)\*\*/g; let last = 0, m;
+  while ((m = re.exec(line))) { if (m.index > last) parent.append(line.slice(last, m.index)); parent.append(el("strong", null, m[1])); last = re.lastIndex; }
+  if (last < line.length) parent.append(line.slice(last));
+}
+function renderText(text) {
+  const box = el("div", "txt"); let list = null, type = "";
+  String(text || "").split("\n").forEach(raw => {
+    const line = raw.trimEnd();
+    const hd = line.match(/^\s*(#{2,3})\s+(.*)$/);
+    if (hd) { list = null; const h = el(hd[1].length === 2 ? "h4" : "h5"); inline(h, hd[2]); box.append(h); return; }
+    const b = line.match(/^\s*[-•*▸]\s+(.*)$/), n = line.match(/^\s*(\d+)[.)]\s+(.*)$/);
+    if (b || n) { const t = b ? "ul" : "ol"; if (!list || type !== t) { list = el(t); type = t; box.append(list); if (n) list.start = +n[1]; } const li = el("li"); inline(li, b ? b[1] : n[2]); list.append(li); }
+    else if (!line.trim()) list = null;
+    else { list = null; const p = el("p"); inline(p, line); box.append(p); }
+  });
+  return box;
+}
+function parseHead(h) {
+  const out = { professor: "", autor: "", editor: "", corpo: "" }; const rest = [];
+  String(h || "").split("\n").forEach(l => {
+    const p = l.match(/^\s*Professor(?:\(a\)|a)?\s*:\s*(.+)$/i), a = l.match(/^\s*Cadastrado por:\s*(.+?)(\s*\(site da turma\))?$/i), e = l.match(/^\s*Editado por:\s*(.+)$/i);
+    if (p) out.professor = p[1].trim(); else if (a) out.autor = a[1].trim(); else if (e) out.editor = e[1].trim(); else rest.push(l);
+  });
+  out.corpo = rest.join("\n").trim();
+  return out;
+}
+function textoEditavel(it) {
+  // tira os rótulos que o servidor coloca, para editar só o conteúdo
+  const c = parseHead(it.cabeca).corpo;
+  return c.replace(/^\s*(Conte[uú]dos|Quest[oõ]es\s*\/\s*atividades)\s*:\s*\n?/i, "").split("\n").map(l => l.replace(/^\s*[-•]\s+/, it.tipo === "prova" ? "" : "- ")).join("\n").trim();
+}
+const materiaDe = it => (it.titulo.match(/\bde\s+(.+)$/i) || [, it.titulo])[1];
+const nomeDe = it => (it.titulo.match(/^(\S+)/) || [, "Prova"])[1];
+
+let items = null, tab = "prova", open = null, editing = null, info = {}, me = null, token = "";
+try { token = localStorage.getItem("t301.token") || ""; } catch (e) {}
+const main = document.getElementById("main"), statusEl = document.getElementById("status");
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { tab = b.dataset.t; open = null; editing = null; render(); }));
+document.getElementById("refresh").addEventListener("click", () => { statusEl.textContent = "Atualizando…"; load(); });
+const API = "https://script.google.com/macros/s/AKfycbyQ_Y86tOpS_-gDAJe11vc3jEsX0jwnlsW5rgnz-B-aQwY2n7szzs_ZpuOqsgkIhXgsRw/exec";
+async function call(fn, ...args) {
+  let r;
+  try {
+    r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ acao: fn, args }) }).then(x => x.json());
+  } catch (e) { throw new Error("Sem conexão com o servidor. Confira a internet e tente de novo."); }
+  if (!r.ok) {
+    if (/LOGIN/.test(r.erro || "")) { logout(true); throw new Error("Sua sessão expirou. Entre de novo."); }
+    throw new Error(r.erro || "Erro no servidor.");
+  }
+  return r.data;
+}
+function setToken(t) { token = t; try { t ? localStorage.setItem("t301.token", t) : localStorage.removeItem("t301.token"); } catch (e) {} }
+function logout(expired) {
+  if (token && !expired) call("sair", token).catch(() => {});
+  setToken(""); me = null; items = null; tab = "prova"; open = null; editing = null; showWho(); render();
+}
+function showWho() {
+  const w = document.getElementById("who"), tabs = document.getElementById("tabs"), adm = document.getElementById("tabAdmin");
+  tabs.hidden = !me; adm.hidden = !(me && me.admin); document.getElementById("refresh").hidden = !me;
+  if (!me) { w.hidden = true; return; }
+  w.hidden = false; w.replaceChildren("· " + me.nome);
+  const b = el("button", null, "Sair"); b.type = "button"; b.onclick = () => logout(false); w.append(b);
+}
+
+async function load() {
+  if (!me) return;
+  try {
+    items = await call("listar", token);
+    statusEl.textContent = "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  } catch (e) { statusEl.textContent = "Erro ao carregar"; if (!items) items = []; }
+  render();
+}
+call("info").then(i => {
+  info = i; const a = document.getElementById("addcal"); a.hidden = false;
+  document.getElementById("lkG").href = i.linkGoogle; document.getElementById("lkI").textContent = i.linkIcal;
+}).catch(() => {});
+
+function dateEl(iso) {
+  const [y, m, d] = iso.split("-").map(Number); const box = el("div", "date");
+  box.append(el("small", null, WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]), el("b", null, String(d)), el("small", null, MO[m - 1])); return box;
+}
+
+function render() {
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tab)));
+  main.replaceChildren();
+  if (!me) return main.append(loginView());
+  if (tab === "admin") return main.append(adminView());
+  if (tab === "novo" || editing) return main.append(formView(editing));
+  if (!items) { main.append(el("div", "msg info", "Carregando as pendências…")); return; }
+  if (open) { const it = items.find(x => x.id === open); if (it) return main.append(detailView(it)); open = null; }
+  const today = dayNum(todayISO());
+  const list = items.filter(i => i.tipo === tab).sort((a, b) => a.data.localeCompare(b.data));
+  if (!list.length) { const e = el("div", "empty"); e.append(el("b", null, tab === "prova" ? "Nenhuma prova à vista" : "Nenhum tema pendente"), "Toque em + Cadastrar para adicionar."); return main.append(e); }
+  const box = el("div", "list");
+  list.forEach(it => {
+    const diff = dayNum(it.data) - today;
+    const r = el("button", "row " + it.tipo); r.type = "button";
+    const mid = el("div"); mid.style.minWidth = "0";
+    mid.append(el("div", "mat", materiaDe(it)), el("div", "sub" + (diff >= 0 && diff <= 1 ? " soon" : ""), (it.tipo === "tema" ? "Tema · entrega " : nomeDe(it) + " · ") + rel(diff)));
+    const ready = it.tipo === "tema" ? !!it.caderno : !!it.resumo;
+    r.append(dateEl(it.data), mid, el("span", "chip " + (ready ? "ready" : "wait"), ready ? (it.tipo === "tema" ? "respostas" : "resumo") : "aguardando"));
+    r.addEventListener("click", () => { open = it.id; render(); scrollTo(0, 0); });
+    box.append(r);
+  });
+  main.append(box);
+}
+
+function detailView(it) {
+  const wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "14px"; wrap.style.marginTop = "8px";
+  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { open = null; render(); };
+  const diff = dayNum(it.data) - dayNum(todayISO());
+  const h = parseHead(it.cabeca);
+  const head = el("div", "card dhead " + it.tipo); head.style.gridTemplateColumns = "auto 1fr"; head.style.alignItems = "center";
+  const inf = el("div"); inf.style.minWidth = "0";
+  inf.append(el("div", "hint", it.tipo === "tema" ? "Tema de casa" : nomeDe(it)), el("h2", null, materiaDe(it)),
+    el("div", "sub" + (diff >= 0 && diff <= 1 ? " soon" : ""), (it.tipo === "tema" ? "entrega " : "") + rel(diff) + (h.professor ? " · Prof. " + h.professor : "")));
+  head.append(dateEl(it.data), inf);
+  wrap.append(back, head);
+  if (h.corpo) { const b = el("div", "block"); b.append(el("h3", null, it.tipo === "tema" ? "O que foi pedido" : "Conteúdos que caem"), renderText(h.corpo)); wrap.append(b); }
+  if (it.tipo === "tema") {
+    const b = el("div", "block caderno"); const t = el("h3", null, "Respostas para o caderno");
+    if (it.caderno) { const cp = el("button", "small", "Copiar"); cp.type = "button"; cp.onclick = () => { navigator.clipboard.writeText(it.caderno).then(() => { cp.textContent = "Copiado"; setTimeout(() => cp.textContent = "Copiar", 1500); }, () => {}); }; t.append(cp); }
+    b.append(t, it.caderno ? renderText(it.caderno) : el("p", "hint", "As respostas aparecem aqui em até 3 horas depois do cadastro."));
+    wrap.append(b);
+    if (it.resumo) { const d = el("details", "block"); d.append(el("summary", null, "Entender as respostas"), renderText(it.resumo)); wrap.append(d); }
+  } else {
+    const b = el("div", "card"); b.append(el("h3", "hint", "RESUMO PARA ESTUDAR"), it.resumo ? renderText(it.resumo) : el("p", "hint", "O resumo aparece aqui em até 3 horas depois do cadastro."));
+    wrap.append(b);
+  }
+  if (h.autor || h.editor) wrap.append(el("p", "hint", [h.autor ? "Cadastrado por " + h.autor : "", h.editor ? "editado por " + h.editor : ""].filter(Boolean).join(" · ")));
+  const btns = el("div", "btns");
+  const ed = el("button", "btn alt", "Editar"); ed.type = "button"; ed.onclick = () => { editing = it; render(); scrollTo(0, 0); };
+  const del = el("button", "btn alt", "Apagar"); del.type = "button";
+  btns.append(ed, del); wrap.append(btns);
+  const conf = el("div", "card"); conf.hidden = true;
+  const sim = el("button", "btn danger", "Sim, apagar"); sim.type = "button";
+  const nao = el("button", "btn alt", "Cancelar"); nao.type = "button";
+  const cmsg = el("div", "msg err"); cmsg.hidden = true;
+  const cb = el("div", "btns"); cb.append(sim, nao);
+  conf.append(el("p", null, "Apagar \"" + it.titulo + "\" para todo mundo?"), cb, cmsg);
+  wrap.append(conf);
+  del.onclick = () => { conf.hidden = false; };
+  nao.onclick = () => { conf.hidden = true; };
+  sim.onclick = async () => {
+    sim.disabled = true; cmsg.hidden = true;
+    try { await call("apagar", { id: it.id, token }); open = null; items = items.filter(x => x.id !== it.id); render(); load(); }
+    catch (e) { sim.disabled = false; cmsg.hidden = false; cmsg.textContent = (e && e.message) || "Não consegui apagar."; }
+  };
+  return wrap;
+}
+
+function field(label, node, full) { const l = el("label", full ? "full" : null); l.append(label, node); return l; }
+function select(id, opts, value) {
+  const s = el("select"); s.id = id;
+  opts.forEach(([v, t]) => { const o = el("option", null, t); o.value = v; s.append(o); });
+  if (value != null) s.value = value; return s;
+}
+
+// ---- print (só a Layla): o Google lê o texto e o formulário é preenchido ----
+function toJpegB64(file) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let blob = file;
+      try {
+        const bmp = await createImageBitmap(file); const sc = Math.min(1, 1600 / bmp.width);
+        const c = document.createElement("canvas"); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+        c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+        blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88)) || file;
+      } catch (e) {}
+      const fr = new FileReader(); fr.onload = () => resolve({ b64: String(fr.result).split(",")[1], mime: blob.type || "image/jpeg" }); fr.onerror = reject; fr.readAsDataURL(blob);
+    } catch (e) { reject(e); }
+  });
+}
+function adivinhar(texto, tipo, mat, data, prof) {
+  const t = norm(texto);
+  if (/\b(tema|tarefa|licao|para casa|entregar)\b/.test(t) && !/\b(prova|teste|avaliacao)\b/.test(t)) tipo.value = "tema";
+  else if (/\b(prova|teste|avaliacao|simulado|trabalho)\b/.test(t)) tipo.value = "prova";
+  const achouProf = TEACHERS.find(([n]) => t.includes(norm(n).split(" ").slice(0, 2).join(" ")) || t.includes(norm(n).split(" ")[0] + " "));
+  if (achouProf) prof.value = achouProf[0];
+  const achouMat = SUBJ.slice().sort((a, b) => b.length - a.length).find(m => t.includes(norm(m)));
+  if (achouMat) mat.value = achouMat;
+  else if (achouProf) { const m1 = achouProf[1].split(",")[0].trim(); if (SUBJ.includes(m1)) mat.value = m1; }
+  // última data dd/mm do texto (costuma ser a do teste/entrega)
+  const ds = [...texto.matchAll(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g)];
+  if (ds.length) {
+    const d = ds[ds.length - 1]; const hoje = todayISO(); let y = +hoje.slice(0, 4);
+    if (d[3]) y = d[3].length === 2 ? 2000 + +d[3] : +d[3];
+    const iso = y + "-" + String(+d[2]).padStart(2, "0") + "-" + String(+d[1]).padStart(2, "0");
+    if (/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(iso)) { data.value = iso; data.dataset.manual = "1"; }
+  }
+}
+function printBox(txt, tipo, mat, data, prof, sync) {
+  const box = el("div", "block");
+  box.append(el("h3", null, "📷 Ler de um print (só você)"));
+  const inp = el("input"); inp.type = "file"; inp.accept = "image/*"; inp.id = "f-print";
+  const msg = el("p", "hint", "Escolha o print do post: o texto vai para o campo abaixo e eu tento preencher tipo, matéria, data e professor. Confira antes de salvar.");
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    msg.textContent = "Lendo o print… (5 a 15 s)";
+    try {
+      const { b64, mime } = await toJpegB64(f);
+      const texto = await call("lerPrint", token, b64, mime);
+      if (!texto) { msg.textContent = "Não encontrei texto no print. Tente um mais nítido."; return; }
+      txt.value = (txt.value.trim() ? txt.value.trim() + "\n\n" : "") + texto;
+      adivinhar(texto, tipo, mat, data, prof); sync();
+      msg.textContent = "Pronto! Confira os campos (principalmente a data) e toque em Cadastrar.";
+    } catch (e) { msg.textContent = (e && e.message) || "Não consegui ler o print."; }
+    inp.value = "";
+  };
+  box.append(inp, msg);
+  return box;
+}
+
+function formView(it) {
+  const card = el("section", "card"); card.style.marginTop = "8px";
+  card.append(el("h2", null, it ? "Editar pendência" : "Cadastrar prova ou tema"));
+  if (it) { const back = el("button", "back", "‹ Cancelar edição"); back.type = "button"; back.onclick = () => { editing = null; render(); }; card.prepend(back); }
+  else card.append(el("p", "hint", "O resumo (provas) ou as respostas (temas) aparecem em até 3 horas."));
+  const f = el("div", "fields");
+  const tipo = select("f-tipo", [["prova", "Prova / teste"], ["tema", "Tema de casa"]], it ? it.tipo : "prova");
+  const nome = select("f-nome", [["Prova", "Prova"], ["Teste", "Teste"], ["Trabalho", "Trabalho"], ["Simulado", "Simulado"], ["Recuperação", "Recuperação"]], it && it.tipo === "prova" ? nomeDe(it) : "Prova");
+  const mat = select("f-mat", [["", "Escolha a matéria"], ...SUBJ.map(s => [s, s])], it ? materiaDe(it) : "");
+  if (it && !SUBJ.includes(materiaDe(it))) { const o = el("option", null, materiaDe(it)); o.value = materiaDe(it); mat.append(o); mat.value = materiaDe(it); }
+  const data = el("input"); data.type = "date"; data.id = "f-data"; data.value = it ? it.data : "";
+  const h = it ? parseHead(it.cabeca) : {};
+  const prof = select("f-prof", [["", "(opcional)"], ...TEACHERS.map(([n, m]) => [n, n + " — " + m])], h.professor || "");
+  const txt = el("textarea"); txt.id = "f-txt"; txt.rows = 6; txt.value = it ? textoEditavel(it) : "";
+  const txtL = field("", txt, true);
+  const nomeL = field("Tipo de avaliação", nome);
+  const dica = el("p", "hint"); dica.hidden = true;
+  const sync = () => {
+    const tema = tipo.value === "tema";
+    nomeL.hidden = tema;
+    txtL.firstChild.textContent = tema ? "Questões / atividades do tema (cole o enunciado completo)" : "Conteúdos que caem (um por linha)";
+    txt.placeholder = tema ? "1) ...\n2) ..." : "Cadeia alimentar\nPirâmides ecológicas";
+    if (tema && !it && mat.value && !data.dataset.manual) { const nc = nextClass(mat.value); if (nc) { data.value = nc; const [y, m, d] = nc.split("-").map(Number); dica.hidden = false; dica.textContent = "Data pela grade: próxima aula de " + mat.value + " (" + WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ", " + d + " " + MO[m - 1] + "). Pode mudar."; } }
+  };
+  tipo.onchange = sync; mat.onchange = sync; data.oninput = () => { data.dataset.manual = "1"; dica.hidden = true; };
+  f.append(field("Tipo", tipo), nomeL, field("Matéria", mat), field("Data", data), field("Professor(a)", prof, true), txtL);
+  if (me && me.admin && !it) card.append(printBox(txt, tipo, mat, data, prof, sync));
+  card.append(f, dica);
+  const go = el("button", "btn", it ? "Salvar alterações" : "Cadastrar"); go.type = "button";
+  const msg = el("div", "msg"); msg.hidden = true;
+  card.append(go, msg);
+  sync();
+  go.onclick = async () => {
+    msg.hidden = true; go.disabled = true;
+    try {
+      const r = await call("salvar", { id: it ? it.id : "", tipo: tipo.value, nome: nome.value, materia: mat.value, data: data.value, professor: prof.value, texto: txt.value, token });
+      editing = null; tab = tipo.value; open = r.id; items = null; render(); await load();
+    } catch (e) {
+      go.disabled = false; msg.hidden = false; msg.className = "msg err"; msg.textContent = (e && e.message) || "Não consegui salvar.";
+    }
+  };
+  return card;
+}
+
+function loginView() {
+  const card = el("section", "card"); card.style.marginTop = "8px";
+  const modo = { v: "entrar" };
+  const sw = el("div", "tabs"); sw.style.gridTemplateColumns = "1fr 1fr";
+  const bE = el("button", "tab", "Já tenho acesso"), bN = el("button", "tab", "Primeiro acesso");
+  bE.dataset.t = "tema"; bN.dataset.t = "novo"; bE.type = bN.type = "button"; sw.append(bE, bN);
+  const f = el("div", "fields");
+  const nome = el("input"); nome.id = "l-nome"; nome.autocomplete = "name"; nome.placeholder = "Ex.: Ana Souza";
+  const pin = el("input"); pin.id = "l-pin"; pin.type = "password"; pin.inputMode = "numeric"; pin.maxLength = 4; pin.placeholder = "4 números";
+  const cod = el("input"); cod.id = "l-cod"; cod.placeholder = "Peça para a Layla";
+  const codL = field("Código da turma", cod, true);
+  f.append(field("Seu nome", nome, true), field("PIN", pin, true), codL);
+  const go = el("button", "btn"); go.type = "button";
+  const msg = el("div", "msg err"); msg.hidden = true;
+  const dica = el("p", "hint");
+  const sync = () => {
+    bE.setAttribute("aria-selected", String(modo.v === "entrar")); bN.setAttribute("aria-selected", String(modo.v === "novo"));
+    codL.hidden = modo.v !== "novo"; go.textContent = modo.v === "novo" ? "Criar meu acesso" : "Entrar";
+    dica.textContent = modo.v === "novo" ? "Escolha um nome que a turma reconheça e um PIN de 4 números que você vá lembrar." : "Use o mesmo nome e PIN do primeiro acesso.";
+    msg.hidden = true;
+  };
+  bE.onclick = () => { modo.v = "entrar"; sync(); }; bN.onclick = () => { modo.v = "novo"; sync(); };
+  go.onclick = async () => {
+    msg.hidden = true; go.disabled = true;
+    try {
+      const r = await call(modo.v === "novo" ? "criarAcesso" : "entrar", { nome: nome.value, pin: pin.value, codigo: cod.value });
+      setToken(r.token); me = await call("quemSou", r.token); showWho(); render(); load();
+    } catch (e) { msg.hidden = false; msg.textContent = (e && e.message) || "Não consegui entrar."; }
+    go.disabled = false;
+  };
+  card.append(el("h2", null, "Entrar na agenda da turma"), sw, dica, f, go, msg);
+  sync();
+  return card;
+}
+
+function fmtQuando(iso) { if (!iso) return "—"; const d = new Date(iso); return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
+function adminView() {
+  const wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "14px"; wrap.style.marginTop = "8px";
+  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "prova"; render(); };
+  const box = el("section", "card"); box.append(el("h2", null, "Quem acessou"), el("p", "hint", "Carregando…"));
+  wrap.append(back, box);
+  call("acessos", token).then(r => {
+    box.replaceChildren(el("h2", null, "Quem acessou (" + r.pessoas.length + ")"));
+    const sc = el("div", "scroll"); const t = el("table", "people");
+    const hd = el("tr"); ["Nome", "Último acesso", "Acessos", ""].forEach(x => hd.append(el("th", null, x))); t.append(hd);
+    r.pessoas.forEach(p => {
+      const tr = el("tr"); tr.append(el("td", null, p.nome), el("td", null, fmtQuando(p.ultimo)), el("td", null, String(p.acessos)));
+      const td = el("td");
+      if (me && p.nome !== me.nome) { const rm = el("button", "small", "Remover"); rm.type = "button"; rm.onclick = async () => { if (rm.dataset.ok) { await call("removerAcesso", token, p.nome); render(); } else { rm.dataset.ok = "1"; rm.textContent = "Confirmar"; } }; td.append(rm); }
+      tr.append(td); t.append(tr);
+    });
+    sc.append(t); box.append(sc);
+    const hist = el("section", "card"); hist.append(el("h2", null, "Histórico"));
+    if (!r.log.length) hist.append(el("p", "hint", "Nada ainda."));
+    r.log.forEach(l => { const d = el("div", "logline"); d.append(el("b", null, l.nome), " " + l.acao + (l.item ? " " + l.item : "") + " ", el("small", null, fmtQuando(l.t))); hist.append(d); });
+    wrap.append(hist);
+  }).catch(e => { box.replaceChildren(el("div", "msg err", (e && e.message) || "Não consegui carregar.")); });
+  return wrap;
+}
+
+(async () => {
+  if (token) { try { me = await call("quemSou", token); } catch (e) { me = null; } if (!me) setToken(""); }
+  statusEl.textContent = me ? "" : "";
+  showWho(); render(); load();
+})();
+setInterval(() => { if (me && !editing && tab !== "novo" && tab !== "admin" && !document.hidden) load(); }, 5 * 60 * 1000);
+</script>
+</body>
+</html>
