@@ -28,7 +28,7 @@
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
 .wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
-header { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-block: calc(12px + env(safe-area-inset-top, 0px)) 10px; display: grid; gap: 12px; }
+header { position: sticky; top: 0; z-index: 25; background: var(--bg); padding-block: calc(12px + env(safe-area-inset-top, 0px)) 10px; display: grid; gap: 12px; }
 h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; margin: 0; }
 h1 span { color: var(--margin); }
 .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -105,6 +105,49 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   .btns > .btn { flex-basis: 100%; }
 }
 .btn { min-height: 48px; }
+/* topo e menu */
+.topr { display: flex; align-items: center; gap: 10px; }
+.menubtn { appearance: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 12px; width: 44px; height: 44px; font-size: 1.3rem; cursor: pointer; }
+.menu { position: absolute; right: 0; top: calc(100% - 4px); z-index: 20; width: min(260px, calc(100vw - 32px)); padding: 8px; gap: 2px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.menu .hint { padding: 6px 10px; }
+.mitem { appearance: none; border: 0; background: none; color: var(--ink); font: 700 1rem var(--body); text-align: left; padding: 12px 10px; border-radius: 10px; cursor: pointer; }
+.mitem:hover, .mitem:focus-visible { background: var(--bg); }
+/* botão + flutuante */
+.fab { position: fixed; right: 18px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 15; width: 60px; height: 60px; border-radius: 50%; border: 0; background: var(--ink); color: var(--paper); font-size: 1.9rem; line-height: 1; box-shadow: 0 8px 22px rgba(0,0,0,.25); cursor: pointer; }
+/* filtros */
+.filtros { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 12px; }
+.seg { display: inline-grid; grid-auto-flow: column; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 3px; }
+.seg button { appearance: none; border: 0; background: none; color: var(--muted); font: 700 .9rem var(--body); padding: 9px 12px; border-radius: 9px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.matsel { flex: 1 1 160px; min-width: 0; font: 700 .9rem var(--body); padding: 10px; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); }
+/* calendário */
+.cal { gap: 8px; }
+.calnav { display: flex; align-items: center; justify-content: space-between; }
+.calnav b { font-family: var(--display); font-size: 1.15rem; }
+.calarrow { appearance: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 10px; width: 40px; height: 40px; font-size: 1.3rem; cursor: pointer; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calgrid .wd { text-align: center; font-size: .72rem; font-weight: 700; color: var(--muted); padding-bottom: 2px; }
+.dia { appearance: none; border: 0; background: none; color: var(--ink); border-radius: 10px; min-height: 48px; padding: 4px 0 6px; display: grid; justify-items: center; align-content: start; gap: 4px; cursor: pointer; font: inherit; font-variant-numeric: tabular-nums; }
+.dia .n { font-size: .95rem; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; }
+.dia.tem .n { font-weight: 700; }
+.dia.hoje .n { outline: 2px solid var(--margin); outline-offset: -2px; }
+.dia.sel { background: var(--bg); }
+.dia.sel .n { background: var(--ink); color: var(--paper); outline: 0; }
+.dots { display: flex; gap: 3px; height: 7px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; display: block; box-sizing: border-box; }
+.dots i.t { background: transparent !important; border: 2px solid currentColor; }
+.leg { font-size: .8rem; }
+/* lista compacta */
+.lista { display: grid; gap: 6px; margin-top: 16px; }
+.ltit { font-family: var(--display); font-size: 1.05rem; margin: 10px 0 2px; }
+.linha { appearance: none; width: 100%; text-align: left; cursor: pointer; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "d m t" "d r t"; column-gap: 12px; align-items: center; padding: 10px 12px 10px 14px; background: var(--paper); border: 1px solid var(--rule); border-left: 5px solid var(--c); border-radius: 12px; color: var(--ink); font: inherit; }
+.linha .ld { grid-area: d; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
+.linha .lm { grid-area: m; font-weight: 700; overflow-wrap: anywhere; }
+.linha .lr { grid-area: r; font-size: .8rem; color: var(--muted); }
+.linha .lr.soon { color: var(--margin); font-weight: 700; }
+.tag { grid-area: t; font-size: .68rem; font-weight: 800; letter-spacing: .06em; padding: 4px 8px; border-radius: 6px; }
+.tag.prova { background: var(--ink); color: var(--paper); }
+.tag.tema { border: 1.5px solid var(--ink); color: var(--ink); }
 .small { min-height: 32px; }
 .addcal { margin-top: 28px; }
 .addcal .btn { text-align: center; text-decoration: none; display: grid; place-items: center; }
@@ -121,10 +164,20 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 <body>
 <div class="wrap">
   <header>
-    <div class="top"><h1>Turma <span>301</span></h1><div class="status"><span id="status">Carregando…</span> <span id="who" hidden></span> <button class="refresh" id="refresh" type="button" aria-label="Atualizar" hidden>↻</button></div></div>
+    <div class="top"><h1>Turma <span>301</span></h1>
+      <div class="topr"><span class="status" id="status">Carregando…</span>
+        <button class="menubtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" hidden>☰</button></div></div>
+    <div class="menu card" id="menu" hidden>
+      <div class="hint" id="who"></div>
+      <button class="mitem" id="mRefresh" type="button">↻ Atualizar</button>
+      <button class="mitem" id="mAvisos" type="button">🔔 Avisos no celular</button>
+      <button class="mitem" id="mAdmin" type="button" hidden>👥 Quem acessou</button>
+      <button class="mitem" id="mSair" type="button">↩ Sair</button>
+    </div>
   </header>
   <main id="main"></main>
   <section class="addcal card" id="addcal" hidden>
+    <button class="back" id="avisosVoltar" type="button">‹ Voltar</button>
     <b>🔔 Avisos no celular</b>
     <p class="hint">As provas e os temas da turma aparecem na agenda do seu celular, com lembrete.</p>
     <a class="btn" id="btnAgenda" href="#" rel="noopener">Adicionar à minha agenda</a>
@@ -132,14 +185,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   </section>
 </div>
 
-<nav class="bottomnav" id="tabs" role="tablist" hidden>
-  <div class="inner">
-    <button class="tab" role="tab" data-t="prova" aria-selected="true"><span class="ic">📕</span>Provas</button>
-    <button class="tab" role="tab" data-t="tema" aria-selected="false"><span class="ic">📝</span>Temas</button>
-    <button class="tab plus" role="tab" data-t="novo" aria-selected="false"><span class="ic">＋</span>Cadastrar</button>
-    <button class="tab" role="tab" data-t="admin" id="tabAdmin" aria-selected="false" hidden><span class="ic">👥</span>Acessos</button>
-  </div>
-</nav>
+<button class="fab" id="fab" type="button" aria-label="Cadastrar prova ou tema" hidden>＋</button>
 <script>
 const WD = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const MO = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -202,11 +248,20 @@ function textoEditavel(it) {
 const materiaDe = it => (it.titulo.match(/\bde\s+(.+)$/i) || [, it.titulo])[1];
 const nomeDe = it => (it.titulo.match(/^(\S+)/) || [, "Prova"])[1];
 
-let items = null, tab = "prova", open = null, editing = null, info = {}, me = null, token = "";
+let items = null, tab = "home", open = null, editing = null, info = {}, me = null, token = "";
+let filtroTipo = "tudo", filtroMat = "", mesVisto = todayISO().slice(0, 7), diaSel = null;
 try { token = localStorage.getItem("t301.token") || ""; } catch (e) {}
 const main = document.getElementById("main"), statusEl = document.getElementById("status");
-document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { tab = b.dataset.t; open = null; editing = null; render(); }));
-document.getElementById("refresh").addEventListener("click", () => { statusEl.textContent = "Atualizando…"; load(); });
+const menuEl = document.getElementById("menu"), menuBtn = document.getElementById("menuBtn");
+function fecharMenu() { menuEl.hidden = true; menuBtn.setAttribute("aria-expanded", "false"); }
+menuBtn.onclick = () => { menuEl.hidden = !menuEl.hidden; menuBtn.setAttribute("aria-expanded", String(!menuEl.hidden)); };
+document.addEventListener("click", e => { if (!menuEl.hidden && !menuEl.contains(e.target) && e.target !== menuBtn) fecharMenu(); });
+document.getElementById("mRefresh").onclick = () => { fecharMenu(); statusEl.textContent = "Atualizando…"; load(); };
+document.getElementById("mAvisos").onclick = () => { fecharMenu(); tab = "avisos"; open = null; editing = null; render(); scrollTo(0, 0); };
+document.getElementById("mAdmin").onclick = () => { fecharMenu(); tab = "admin"; open = null; editing = null; render(); scrollTo(0, 0); };
+document.getElementById("mSair").onclick = () => { fecharMenu(); logout(false); };
+document.getElementById("avisosVoltar").onclick = () => { tab = "home"; render(); };
+document.getElementById("fab").onclick = () => { tab = "novo"; open = null; editing = null; render(); scrollTo(0, 0); };
 const API = "https://script.google.com/macros/s/AKfycbyQ_Y86tOpS_-gDAJe11vc3jEsX0jwnlsW5rgnz-B-aQwY2n7szzs_ZpuOqsgkIhXgsRw/exec";
 async function call(fn, ...args) {
   let r;
@@ -222,15 +277,12 @@ async function call(fn, ...args) {
 function setToken(t) { token = t; try { t ? localStorage.setItem("t301.token", t) : localStorage.removeItem("t301.token"); } catch (e) {} }
 function logout(expired) {
   if (token && !expired) call("sair", token).catch(() => {});
-  setToken(""); me = null; items = null; tab = "prova"; open = null; editing = null; showWho(); render();
+  setToken(""); me = null; items = null; tab = "home"; open = null; editing = null; showWho(); render();
 }
 function showWho() {
-  const w = document.getElementById("who"), tabs = document.getElementById("tabs"), adm = document.getElementById("tabAdmin");
-  tabs.hidden = !me; adm.hidden = !(me && me.admin);
-  const ac = document.getElementById("addcal"); if (ac.dataset.pronto) ac.hidden = !me; document.getElementById("refresh").hidden = !me;
-  if (!me) { w.hidden = true; return; }
-  w.hidden = false; w.replaceChildren("· " + me.nome);
-  const b = el("button", null, "Sair"); b.type = "button"; b.onclick = () => logout(false); w.append(b);
+  menuBtn.hidden = !me; fecharMenu();
+  document.getElementById("mAdmin").hidden = !(me && me.admin);
+  document.getElementById("who").textContent = me ? "Olá, " + me.nome : "";
 }
 
 async function load() {
@@ -242,7 +294,7 @@ async function load() {
   render();
 }
 call("info").then(i => {
-  info = i; const a = document.getElementById("addcal"); a.hidden = !me; a.dataset.pronto = "1";
+  info = i;
   const btn = document.getElementById("btnAgenda"), dica = document.getElementById("agendaDica");
   const ua = navigator.userAgent || "";
   const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in document);
@@ -262,34 +314,126 @@ call("info").then(i => {
   }
 }).catch(() => {});
 
+const CORES = { "lingua portuguesa": "#e4572e", "literatura": "#c2185b", "pratica de leitura e escrita": "#ef6c00", "matematica": "#1e88e5", "quimica": "#8e24aa", "biologia": "#2e7d32", "fisica": "#00838f", "itinerario ciencias da natureza": "#689f38", "geografia": "#8d6e63", "itinerario ciencias humanas": "#a1887f", "educacao fisica": "#f9a825", "projeto de vida": "#5e35b1", "sociologia": "#d81b60", "historia": "#c62828", "filosofia": "#3949ab", "lingua inglesa": "#0277bd", "artes": "#ad1457", "arte": "#ad1457", "ia": "#546e7a" };
+const RESERVA = ["#00897b", "#6d4c41", "#7cb342", "#f4511e", "#5c6bc0", "#039be5"];
+function corDe(materia) {
+  const k = norm(materia); if (CORES[k]) return CORES[k];
+  let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0; return RESERVA[h % RESERVA.length];
+}
+const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const WDL = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
 function dateEl(iso) {
   const [y, m, d] = iso.split("-").map(Number); const box = el("div", "date");
   box.append(el("small", null, WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]), el("b", null, String(d)), el("small", null, MO[m - 1])); return box;
 }
 
 function render() {
-  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.t === tab)));
   main.replaceChildren();
+  document.getElementById("fab").hidden = !me || tab !== "home" || !!open;
+  document.getElementById("addcal").hidden = !(me && tab === "avisos");
   if (!me) return main.append(loginView());
+  if (tab === "avisos") return;
   if (tab === "admin") return main.append(adminView());
   if (tab === "novo" || editing) return main.append(formView(editing));
   if (!items) { main.append(el("div", "msg info", "Carregando as pendências…")); return; }
   if (open) { const it = items.find(x => x.id === open); if (it) return main.append(detailView(it)); open = null; }
-  const today = dayNum(todayISO());
-  const list = items.filter(i => i.tipo === tab).sort((a, b) => a.data.localeCompare(b.data));
-  if (!list.length) { const e = el("div", "empty"); e.append(el("b", null, tab === "prova" ? "Nenhuma prova à vista" : "Nenhum tema pendente"), "Toque em + Cadastrar para adicionar."); return main.append(e); }
-  const box = el("div", "list");
-  list.forEach(it => {
-    const diff = dayNum(it.data) - today;
-    const r = el("button", "row " + it.tipo); r.type = "button";
-    const mid = el("div"); mid.style.minWidth = "0";
-    mid.append(el("div", "mat", materiaDe(it)), el("div", "sub" + (diff >= 0 && diff <= 1 ? " soon" : ""), (it.tipo === "tema" ? "Tema · entrega " : nomeDe(it) + " · ") + rel(diff)));
-    const ready = it.tipo === "tema" ? !!it.caderno : !!it.resumo;
-    r.append(dateEl(it.data), mid, el("span", "chip " + (ready ? "ready" : "wait"), ready ? (it.tipo === "tema" ? "respostas" : "resumo") : "aguardando"));
-    r.addEventListener("click", () => { open = it.id; render(); scrollTo(0, 0); });
-    box.append(r);
+  main.append(homeView());
+}
+
+function visiveis() {
+  return items.filter(i => (filtroTipo === "tudo" || i.tipo === filtroTipo) && (!filtroMat || materiaDe(i) === filtroMat));
+}
+
+function homeView() {
+  const wrap = el("div", "home");
+  // filtros
+  const f = el("div", "filtros");
+  const seg = el("div", "seg");
+  [["tudo", "Tudo"], ["prova", "Provas"], ["tema", "Temas"]].forEach(([v, t]) => {
+    const b = el("button", null, t); b.type = "button"; b.setAttribute("aria-pressed", String(filtroTipo === v));
+    b.onclick = () => { filtroTipo = v; render(); }; seg.append(b);
   });
-  main.append(box);
+  const mats = [...new Set(items.map(materiaDe))].sort((x, y) => x.localeCompare(y, "pt-BR"));
+  const sel = el("select", "matsel"); sel.id = "filtro-mat"; sel.setAttribute("aria-label", "Filtrar por matéria");
+  [["", "Todas as matérias"], ...mats.map(m => [m, m])].forEach(([v, t]) => { const o = el("option", null, t); o.value = v; sel.append(o); });
+  sel.value = filtroMat; sel.onchange = () => { filtroMat = sel.value; render(); };
+  f.append(seg, sel); wrap.append(f);
+
+  const vis = visiveis();
+  const porDia = new Map(); vis.forEach(i => { if (!porDia.has(i.data)) porDia.set(i.data, []); porDia.get(i.data).push(i); });
+  const hoje = todayISO();
+
+  // calendário do mês
+  const cal = el("section", "cal card");
+  const [ay, am] = mesVisto.split("-").map(Number);
+  const nav = el("div", "calnav");
+  const prev = el("button", "calarrow", "‹"); prev.type = "button"; prev.setAttribute("aria-label", "Mês anterior");
+  const next = el("button", "calarrow", "›"); next.type = "button"; next.setAttribute("aria-label", "Próximo mês");
+  const mudar = d => { const dt = new Date(Date.UTC(ay, am - 1 + d, 1)); mesVisto = dt.toISOString().slice(0, 7); diaSel = null; render(); };
+  prev.onclick = () => mudar(-1); next.onclick = () => mudar(1);
+  const tit = el("b", null, MESES[am - 1] + " " + ay);
+  nav.append(prev, tit, next); cal.append(nav);
+  const grid = el("div", "calgrid");
+  ["D", "S", "T", "Q", "Q", "S", "S"].forEach(d => grid.append(el("span", "wd", d)));
+  const primeiro = new Date(Date.UTC(ay, am - 1, 1)).getUTCDay();
+  const nDias = new Date(Date.UTC(ay, am, 0)).getUTCDate();
+  for (let k = 0; k < primeiro; k++) grid.append(el("span"));
+  for (let d = 1; d <= nDias; d++) {
+    const iso = mesVisto + "-" + String(d).padStart(2, "0");
+    const its = porDia.get(iso) || [];
+    const c = el("button", "dia" + (iso === hoje ? " hoje" : "") + (iso === diaSel ? " sel" : "") + (its.length ? " tem" : "")); c.type = "button";
+    c.setAttribute("aria-label", d + " de " + MESES[am - 1] + (its.length ? ", " + its.length + " pendência(s)" : ""));
+    c.append(el("span", "n", String(d)));
+    const dots = el("span", "dots");
+    its.slice(0, 4).forEach(i => { const dt = el("i"); const c = corDe(materiaDe(i)); dt.style.background = c; dt.style.color = c; if (i.tipo === "tema") dt.className = "t"; dots.append(dt); });
+    c.append(dots);
+    c.onclick = () => { diaSel = diaSel === iso ? null : iso; render(); };
+    grid.append(c);
+  }
+  cal.append(grid);
+  const leg = el("div", "hint leg"); leg.textContent = "Cada cor é uma matéria. Toque num dia para ver o que tem.";
+  cal.append(leg);
+  wrap.append(cal);
+
+  // lista abaixo
+  const t0 = dayNum(hoje);
+  let lista, titulo;
+  if (diaSel) {
+    lista = porDia.get(diaSel) || [];
+    const [y, m, d] = diaSel.split("-").map(Number);
+    titulo = WDL[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ", " + d + " de " + MESES[m - 1].toLowerCase();
+  } else {
+    lista = vis.filter(i => { const df = dayNum(i.data) - t0; return df >= 0 && df <= 7; });
+    titulo = "Próximos 7 dias";
+  }
+  lista = lista.slice().sort((x, y) => x.data.localeCompare(y.data) || x.tipo.localeCompare(y.tipo));
+  const sec = el("section", "lista");
+  sec.append(el("h2", "ltit", titulo));
+  if (!lista.length) sec.append(el("p", "hint", diaSel ? "Nada neste dia." : "Nada nos próximos 7 dias. 🎉"));
+  lista.forEach(it => sec.append(linha(it, t0)));
+  if (!diaSel) {
+    const depois = vis.filter(i => dayNum(i.data) - t0 > 7).sort((x, y) => x.data.localeCompare(y.data));
+    if (depois.length) { sec.append(el("h2", "ltit", "Depois")); depois.forEach(it => sec.append(linha(it, t0))); }
+  }
+  wrap.append(sec);
+  return wrap;
+}
+
+function linha(it, t0) {
+  const diff = dayNum(it.data) - t0;
+  const r = el("button", "linha"); r.type = "button";
+  r.style.setProperty("--c", corDe(materiaDe(it)));
+  const [y, m, d] = it.data.split("-").map(Number);
+  const ready = it.tipo === "tema" ? !!it.caderno : !!it.resumo;
+  r.append(
+    el("span", "ld", String(d).padStart(2, "0") + "/" + String(m).padStart(2, "0")),
+    el("span", "lm", materiaDe(it)),
+    el("span", "tag " + it.tipo, it.tipo === "tema" ? "TEMA" : nomeDe(it).toUpperCase()),
+    el("span", "lr" + (diff >= 0 && diff <= 1 ? " soon" : ""), (ready ? "✓ " : "") + rel(diff))
+  );
+  r.onclick = () => { open = it.id; render(); scrollTo(0, 0); };
+  return r;
 }
 
 function detailView(it) {
@@ -402,7 +546,8 @@ function formView(it) {
   const card = el("section", "card"); card.style.marginTop = "8px";
   card.append(el("h2", null, it ? "Editar pendência" : "Cadastrar prova ou tema"));
   if (it) { const back = el("button", "back", "‹ Cancelar edição"); back.type = "button"; back.onclick = () => { editing = null; render(); }; card.prepend(back); }
-  else card.append(el("p", "hint", "O resumo (provas) ou as respostas (temas) aparecem em até 3 horas."));
+  else { const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "home"; render(); }; card.prepend(back);
+    card.append(el("p", "hint", "O resumo (provas) ou as respostas (temas) aparecem em até 3 horas.")); }
   const f = el("div", "fields");
   const tipo = select("f-tipo", [["prova", "Prova / teste"], ["tema", "Tema de casa"]], it ? it.tipo : "prova");
   const nome = select("f-nome", [["Prova", "Prova"], ["Teste", "Teste"], ["Trabalho", "Trabalho"], ["Simulado", "Simulado"], ["Recuperação", "Recuperação"]], it && it.tipo === "prova" ? nomeDe(it) : "Prova");
@@ -434,7 +579,7 @@ function formView(it) {
     msg.hidden = true; go.disabled = true;
     try {
       const r = await call("salvar", { id: it ? it.id : "", tipo: tipo.value, nome: nome.value, materia: mat.value, data: data.value, professor: prof.value, texto: txt.value, token });
-      editing = null; tab = tipo.value; open = r.id; items = null; render(); await load();
+      editing = null; tab = "home"; open = r.id; items = null; render(); await load();
     } catch (e) {
       go.disabled = false; msg.hidden = false; msg.className = "msg err"; msg.textContent = (e && e.message) || "Não consegui salvar.";
     }
@@ -480,7 +625,7 @@ function loginView() {
 function fmtQuando(iso) { if (!iso) return "—"; const d = new Date(iso); return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); }
 function adminView() {
   const wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "14px"; wrap.style.marginTop = "8px";
-  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "prova"; render(); };
+  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "home"; render(); };
   const box = el("section", "card"); box.append(el("h2", null, "Quem acessou"), el("p", "hint", "Carregando…"));
   wrap.append(back, box);
   call("acessos", token).then(r => {
