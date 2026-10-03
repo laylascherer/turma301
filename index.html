@@ -106,9 +106,8 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 }
 .btn { min-height: 48px; }
 .small { min-height: 32px; }
-.addcal { margin-top: 28px; font-size: .9rem; color: var(--muted); }
-.addcal a { color: var(--focus); font-weight: 700; }
-.addcal code { font-size: .75rem; word-break: break-all; background: var(--paper); padding: 2px 4px; border-radius: 4px; }
+.addcal { margin-top: 28px; }
+.addcal .btn { text-align: center; text-decoration: none; display: grid; place-items: center; }
 [hidden] { display: none !important; }
 #who button { appearance: none; border: 0; background: none; color: var(--focus); font: 700 .8rem var(--body); cursor: pointer; padding: 0 0 0 6px; }
 .people { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -125,10 +124,11 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
     <div class="top"><h1>Turma <span>301</span></h1><div class="status"><span id="status">Carregando…</span> <span id="who" hidden></span> <button class="refresh" id="refresh" type="button" aria-label="Atualizar" hidden>↻</button></div></div>
   </header>
   <main id="main"></main>
-  <section class="addcal" id="addcal" hidden>
-    <b>Quer receber os avisos no celular?</b> Adicione a agenda Turma 301:<br>
-    • Google Agenda: <a id="lkG" href="#" target="_blank" rel="noopener">abrir e tocar em Adicionar</a><br>
-    • iPhone / Samsung / Outlook: assine este endereço iCal: <code id="lkI"></code>
+  <section class="addcal card" id="addcal" hidden>
+    <b>🔔 Avisos no celular</b>
+    <p class="hint">As provas e os temas da turma aparecem na agenda do seu celular, com lembrete.</p>
+    <a class="btn" id="btnAgenda" href="#" rel="noopener">Adicionar à minha agenda</a>
+    <p class="hint" id="agendaDica"></p>
   </section>
 </div>
 
@@ -226,7 +226,8 @@ function logout(expired) {
 }
 function showWho() {
   const w = document.getElementById("who"), tabs = document.getElementById("tabs"), adm = document.getElementById("tabAdmin");
-  tabs.hidden = !me; adm.hidden = !(me && me.admin); document.getElementById("refresh").hidden = !me;
+  tabs.hidden = !me; adm.hidden = !(me && me.admin);
+  const ac = document.getElementById("addcal"); if (ac.dataset.pronto) ac.hidden = !me; document.getElementById("refresh").hidden = !me;
   if (!me) { w.hidden = true; return; }
   w.hidden = false; w.replaceChildren("· " + me.nome);
   const b = el("button", null, "Sair"); b.type = "button"; b.onclick = () => logout(false); w.append(b);
@@ -241,8 +242,24 @@ async function load() {
   render();
 }
 call("info").then(i => {
-  info = i; const a = document.getElementById("addcal"); a.hidden = false;
-  document.getElementById("lkG").href = i.linkGoogle; document.getElementById("lkI").textContent = i.linkIcal;
+  info = i; const a = document.getElementById("addcal"); a.hidden = !me; a.dataset.pronto = "1";
+  const btn = document.getElementById("btnAgenda"), dica = document.getElementById("agendaDica");
+  const ua = navigator.userAgent || "";
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in document);
+  const android = /Android/.test(ua);
+  if (ios) {
+    // abre o app Calendário direto na tela "Assinar"
+    btn.href = i.linkIcal.replace(/^https:/, "webcal:");
+    dica.textContent = "Toque em Assinar no app Calendário. Depois, em Ajustes → Calendário → Horários de Alerta Padrão, escolha quando quer o aviso.";
+  } else if (android) {
+    // abre o app Google Agenda; se não tiver o app, cai na versão web
+    const path = i.linkGoogle.replace(/^https:\/\//, "");
+    btn.href = "intent://" + path + "#Intent;scheme=https;package=com.google.android.calendar;S.browser_fallback_url=" + encodeURIComponent(i.linkGoogle) + ";end";
+    dica.textContent = "Toque em Adicionar. Para escolher quando receber o aviso: Google Agenda → Configurações → Turma 301 → Notificações de eventos de dia inteiro.";
+  } else {
+    btn.href = i.linkGoogle; btn.target = "_blank";
+    dica.textContent = "No computador abre o Google Agenda; toque em Adicionar.";
+  }
 }).catch(() => {});
 
 function dateEl(iso) {
