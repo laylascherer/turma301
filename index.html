@@ -105,6 +105,20 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   .btns > .btn { flex-basis: 100%; }
 }
 .btn { min-height: 48px; }
+.simbtn { background: var(--prova); color: #fff; }
+.quiz .qhead { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+.qcmd { font-weight: 700; }
+.alts { display: grid; gap: 8px; }
+.alt { appearance: none; text-align: left; display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; min-height: 48px; }
+.alt b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); font-size: .85rem; }
+.alt span { min-width: 0; overflow-wrap: anywhere; }
+.alt.certa { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--paper)); }
+.alt.certa b { background: var(--ok); color: #fff; }
+.alt.errada { border-color: var(--prova); background: var(--prova-soft); }
+.alt.errada b { background: var(--prova); color: #fff; }
+.alt:disabled { cursor: default; }
+.score { justify-items: center; text-align: center; }
+.score b { font-family: var(--display); font-size: 2.6rem; }
 /* topo e menu */
 .topr { display: flex; align-items: center; gap: 10px; }
 .menubtn { appearance: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 12px; width: 44px; height: 44px; font-size: 1.3rem; cursor: pointer; }
@@ -257,11 +271,11 @@ function fecharMenu() { menuEl.hidden = true; menuBtn.setAttribute("aria-expande
 menuBtn.onclick = () => { menuEl.hidden = !menuEl.hidden; menuBtn.setAttribute("aria-expanded", String(!menuEl.hidden)); };
 document.addEventListener("click", e => { if (!menuEl.hidden && !menuEl.contains(e.target) && e.target !== menuBtn) fecharMenu(); });
 document.getElementById("mRefresh").onclick = () => { fecharMenu(); statusEl.textContent = "Atualizando…"; load(); };
-document.getElementById("mAvisos").onclick = () => { fecharMenu(); tab = "avisos"; open = null; editing = null; render(); scrollTo(0, 0); };
-document.getElementById("mAdmin").onclick = () => { fecharMenu(); tab = "admin"; open = null; editing = null; render(); scrollTo(0, 0); };
+document.getElementById("mAvisos").onclick = () => { fecharMenu(); quiz = null; tab = "avisos"; open = null; editing = null; render(); scrollTo(0, 0); };
+document.getElementById("mAdmin").onclick = () => { fecharMenu(); quiz = null; tab = "admin"; open = null; editing = null; render(); scrollTo(0, 0); };
 document.getElementById("mSair").onclick = () => { fecharMenu(); logout(false); };
 document.getElementById("avisosVoltar").onclick = () => { tab = "home"; render(); };
-document.getElementById("fab").onclick = () => { tab = "novo"; open = null; editing = null; render(); scrollTo(0, 0); };
+document.getElementById("fab").onclick = () => { tab = "novo"; open = null; editing = null; quiz = null; render(); scrollTo(0, 0); };
 const API = "https://script.google.com/macros/s/AKfycbyQ_Y86tOpS_-gDAJe11vc3jEsX0jwnlsW5rgnz-B-aQwY2n7szzs_ZpuOqsgkIhXgsRw/exec";
 async function call(fn, ...args) {
   let r;
@@ -277,7 +291,7 @@ async function call(fn, ...args) {
 function setToken(t) { token = t; try { t ? localStorage.setItem("t301.token", t) : localStorage.removeItem("t301.token"); } catch (e) {} }
 function logout(expired) {
   if (token && !expired) call("sair", token).catch(() => {});
-  setToken(""); me = null; items = null; tab = "home"; open = null; editing = null; showWho(); render();
+  setToken(""); me = null; items = null; quiz = null; tab = "home"; open = null; editing = null; showWho(); render();
 }
 function showWho() {
   menuBtn.hidden = !me; fecharMenu();
@@ -337,6 +351,7 @@ function render() {
   if (tab === "admin") return main.append(adminView());
   if (tab === "novo" || editing) return main.append(formView(editing));
   if (!items) { main.append(el("div", "msg info", "Carregando as pendências…")); return; }
+  if (quiz) return main.append(quizView());
   if (open) { const it = items.find(x => x.id === open); if (it) return main.append(detailView(it)); open = null; }
   main.append(homeView());
 }
@@ -420,6 +435,87 @@ function homeView() {
   return wrap;
 }
 
+// ---------- simulado: ENEM oficial (banco no site) + questões da IA preparadas pela rotina ----------
+let quiz = null, banco = null;
+function areaDe(materia) {
+  const m = norm(materia);
+  if (/biolog|quimic|fisic|cienc|natureza/.test(m)) return { d: ["ciencias-natureza"], nome: "Ciências da Natureza" };
+  if (/histor|geograf|filosof|sociolog|humanas/.test(m)) return { d: ["ciencias-humanas"], nome: "Ciências Humanas" };
+  if (/matemat/.test(m)) return { d: ["matematica"], nome: "Matemática" };
+  if (/ingles/.test(m)) return { d: ["linguagens"], lang: "ingles", nome: "Inglês" };
+  if (/portugu|literat|leitura|redac|arte|educacao fisica/.test(m)) return { d: ["linguagens"], semLang: true, nome: "Linguagens" };
+  return null;
+}
+function embaralhar(a) { for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; }
+async function montarSimulado(it) {
+  try {
+    const sim = await call("simulado", token, it.id);
+    if (!sim || !Array.isArray(sim.ia) || !sim.ia.length) { quiz = { it, estado: "sem" }; render(); return; }
+    const ia = sim.ia.filter(q => q && Array.isArray(q.alternativas) && q.alternativas.length === 5 && /^[A-E]$/.test(q.correta)).map(q => ({ ...q, src: "ia" }));
+    let oficiais = [];
+    const area = areaDe(materiaDe(it));
+    if (area && Array.isArray(sim.palavras) && sim.palavras.length) {
+      if (!banco) banco = await fetch("enem/questoes.json").then(r => r.json());
+      const kws = [...new Set(sim.palavras.map(norm).filter(k => k.length >= 4))];
+      oficiais = banco.filter(q => area.d.includes(q.d) && (area.lang ? q.l === area.lang : area.semLang ? !q.l : true))
+        .map(q => { const t = norm((q.c || "") + " " + (q.i || "") + " " + q.a.join(" ")); let sc = 0; kws.forEach(k => { if (t.includes(k)) sc += k.includes(" ") ? 2 : 1; }); return { q, sc }; })
+        .filter(x => x.sc >= 2).sort((a, b) => b.sc - a.sc).slice(0, 12);
+      oficiais = embaralhar(oficiais).slice(0, Math.max(3, Math.min(5, ia.length))).map(({ q }) => ({
+        src: "enem", origem: "ENEM " + q.y + " · questão " + q.n, contexto: q.c, enunciado: q.i, alternativas: q.a, correta: q.k, explicacao: ""
+      }));
+    }
+    quiz = { it, estado: "ok", qs: embaralhar([...ia, ...oficiais]), idx: 0, resp: [] };
+  } catch (e) { quiz = { it, estado: "erro", msg: (e && e.message) || "Não consegui carregar o simulado." }; }
+  render();
+}
+function quizView() {
+  const it = quiz.it;
+  const wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "12px"; wrap.style.marginTop = "8px";
+  const back = el("button", "back", "‹ Sair do simulado"); back.type = "button"; back.onclick = () => { quiz = null; render(); };
+  wrap.append(back, el("h2", "ltit", "Simulado · " + materiaDe(it)));
+  if (quiz.estado === "carregando") { wrap.append(el("div", "msg info", "Preparando o simulado…")); return wrap; }
+  if (quiz.estado === "sem") { wrap.append(el("div", "msg info", "O simulado desta prova ainda está sendo preparado. Ele fica pronto em até 3 horas depois que os conteúdos são cadastrados.")); return wrap; }
+  if (quiz.estado === "erro") { wrap.append(el("div", "msg err", quiz.msg)); return wrap; }
+  const qs = quiz.qs, n = qs.length;
+  const feitas = quiz.resp.filter(Boolean).length;
+  if (quiz.fim) {
+    const ok = qs.filter((q, k) => quiz.resp[k] === q.correta).length;
+    const sc = el("div", "card score"); sc.append(el("b", null, ok + "/" + n), el("span", null, ok / n >= .7 ? "Mandou bem! 🎉" : ok / n >= .5 ? "Quase lá — revise os erros." : "Vale reler o resumo e tentar de novo."));
+    wrap.append(sc);
+    qs.forEach((q, k) => { if (quiz.resp[k] !== q.correta) { const b = el("button", "linha"); b.type = "button"; b.style.setProperty("--c", "var(--prova)"); b.append(el("span", "ld", "Q" + (k + 1)), el("span", "lm", q.src === "enem" ? q.origem : (q.conteudo || "Questão estilo ENEM")), el("span", "tag tema", "REVER")); b.onclick = () => { quiz.idx = k; quiz.fim = false; render(); scrollTo(0, 0); }; wrap.append(b); } });
+    const again = el("button", "btn", "Fazer de novo (outra ordem)"); again.type = "button";
+    again.onclick = () => { quiz = { it, estado: "carregando" }; render(); montarSimulado(it); };
+    wrap.append(again);
+    return wrap;
+  }
+  const q = qs[quiz.idx], esc = quiz.resp[quiz.idx];
+  const card = el("section", "card quiz");
+  const hd = el("div", "qhead"); hd.append(el("b", null, "Questão " + (quiz.idx + 1) + " de " + n), el("span", "tag " + (q.src === "enem" ? "prova" : "tema"), q.src === "enem" ? q.origem.toUpperCase() : "ESTILO ENEM (IA)"));
+  card.append(hd);
+  if (q.contexto) { const c = el("div", "block"); c.append(renderText(q.contexto)); card.append(c); }
+  if (q.enunciado) { const c = el("div", "qcmd"); c.append(renderText(q.enunciado)); card.append(c); }
+  const alts = el("div", "alts");
+  q.alternativas.forEach((a, k) => {
+    const L = "ABCDE"[k]; const b = el("button", "alt"); b.type = "button";
+    if (esc) { b.disabled = true; if (L === q.correta) b.classList.add("certa"); else if (L === esc) b.classList.add("errada"); }
+    b.append(el("b", null, L), el("span", null, a));
+    b.onclick = () => { quiz.resp[quiz.idx] = L; if (quiz.resp.filter(Boolean).length === n) quiz.terminou = true; render(); };
+    alts.append(b);
+  });
+  card.append(alts);
+  if (esc) {
+    card.append(el("div", "msg " + (esc === q.correta ? "ok" : "err"), esc === q.correta ? "Acertou! ✅" : "Resposta certa: " + q.correta + (q.src === "enem" ? " (gabarito oficial)" : "")));
+    if (q.explicacao) { const e = el("div", "block"); e.append(el("h3", null, "Explicação"), renderText(q.explicacao)); card.append(e); }
+  }
+  const nav = el("div", "btns");
+  if (quiz.idx > 0) { const p = el("button", "btn alt", "‹ Anterior"); p.type = "button"; p.onclick = () => { quiz.idx--; render(); scrollTo(0, 0); }; nav.append(p); }
+  if (quiz.idx < n - 1) { const nx = el("button", "btn", "Próxima ›"); nx.type = "button"; nx.disabled = !esc; nx.onclick = () => { quiz.idx++; render(); scrollTo(0, 0); }; nav.append(nx); }
+  else if (quiz.terminou) { const f = el("button", "btn", "Ver resultado"); f.type = "button"; f.onclick = () => { quiz.fim = true; render(); scrollTo(0, 0); }; nav.append(f); }
+  card.append(nav, el("p", "hint", feitas + " de " + n + " respondidas"));
+  wrap.append(card);
+  return wrap;
+}
+
 function linha(it, t0) {
   const diff = dayNum(it.data) - t0;
   const r = el("button", "linha"); r.type = "button";
@@ -457,6 +553,11 @@ function detailView(it) {
   } else {
     const b = el("div", "card"); b.append(el("h3", "hint", "RESUMO PARA ESTUDAR"), it.resumo ? renderText(it.resumo) : el("p", "hint", "O resumo aparece aqui em até 3 horas depois do cadastro."));
     wrap.append(b);
+  }
+  if (it.tipo === "prova") {
+    const sb = el("button", "btn simbtn", "📝 Fazer simulado"); sb.type = "button";
+    sb.onclick = () => { quiz = { it, estado: "carregando" }; render(); scrollTo(0, 0); montarSimulado(it); };
+    wrap.append(sb);
   }
   if (h.autor || h.editor) wrap.append(el("p", "hint", [h.autor ? "Cadastrado por " + h.autor : "", h.editor ? "editado por " + h.editor : ""].filter(Boolean).join(" · ")));
   const btns = el("div", "btns");
