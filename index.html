@@ -18,6 +18,7 @@
   --bg: #f3f4f6; --paper: #ffffff; --ink: #16202e; --muted: #5a6474; --rule: #d6dae1;
   --brand: #24578f; --on-brand: #ffffff; --brand-soft: #e3ebf5;
   --accent: #ea6b2c; --on-accent: #1a0c03;
+  --lemb: #f2c230;
   --margin: #24578f; --prova: #ea6b2c; --on-prova: #1a0c03; --prova-soft: #fdeee5; --tema: #24578f; --tema-soft: #e3ebf5;
   --ok: #1f7a4d; --danger: #b42318; --danger-soft: #fbe9e7; --focus: #24578f;
   --display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
@@ -169,6 +170,10 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .tag { grid-area: t; font-size: .72rem; font-weight: 600; letter-spacing: .02em; padding: 4px 8px; border-radius: 6px; }
 .tag.prova { background: var(--prova); color: var(--on-prova); }
 .tag.tema { background: var(--tema-soft); color: var(--tema); }
+.tag.lembrete { background: var(--lemb); color: #2a1f00; }
+.dots i.l { background: var(--lemb) !important; border-radius: 2px; }
+.bell { position: relative; }
+.bell .badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--prova); color: var(--on-prova); font: 700 .72rem/20px var(--body); text-align: center; }
 .small { min-height: 32px; }
 .addcal { margin-top: 28px; }
 .addcal .btn { text-align: center; text-decoration: none; display: grid; place-items: center; }
@@ -187,6 +192,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   <header>
     <div class="top"><h1>Turma <span>301</span></h1>
       <div class="topr"><span class="status" id="status">Carregando…</span>
+        <button class="menubtn bell" id="bellBtn" type="button" aria-label="Lembretes" hidden>🔔<span class="badge" id="bellN" hidden></span></button>
         <button class="menubtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false" hidden>☰</button></div></div>
     <div class="menu card" id="menu" hidden>
       <div class="hint" id="who"></div>
@@ -264,12 +270,18 @@ function parseHead(h) {
 function textoEditavel(it) {
   // tira os rótulos que o servidor coloca, para editar só o conteúdo
   const c = parseHead(it.cabeca).corpo;
+  if (it.tipo === "lembrete") return c.split("\n").filter(l => !/^\s*(Lembrete|Mat[eé]ria):/i.test(l)).join("\n").trim();
   return c.replace(/^\s*(Conte[uú]dos|Quest[oõ]es\s*\/\s*atividades)\s*:\s*\n?/i, "").split("\n").map(l => l.replace(/^\s*[-•]\s+/, it.tipo === "prova" ? "" : "- ")).join("\n").trim();
 }
-const materiaDe = it => (it.titulo.match(/\bde\s+(.+)$/i) || [, it.titulo])[1];
+// lembretes: título "🔔 Levar: livro (Física)" / "🔔 Entregar no CNEC: atividade" / "🔔 algo"
+const subDe = it => /^🔔\s*Levar:/i.test(it.titulo) ? "levar" : /^🔔\s*Entregar/i.test(it.titulo) ? "entregar" : "outro";
+const oQueDe = it => it.titulo.replace(/^🔔\s*(Levar:|Entregar no CNEC:)?\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "");
+const matLembrete = it => { const m = String(it.cabeca || "").match(/^\s*Mat[eé]ria:\s*(.+)$/im); return m ? m[1].trim() : ""; };
+const materiaDe = it => it.tipo === "lembrete" ? (matLembrete(it) || "Lembrete") : (it.titulo.match(/\bde\s+(.+)$/i) || [, it.titulo])[1];
 const nomeDe = it => (it.titulo.match(/^(\S+)/) || [, "Prova"])[1];
 
 let items = null, tab = "home", open = null, editing = null, info = {}, me = null, token = "";
+let novoTipo = null;
 let filtroTipo = "tudo", filtroMat = "", mesVisto = todayISO().slice(0, 7), diaSel = null;
 try { token = localStorage.getItem("t301.token") || ""; } catch (e) {}
 const main = document.getElementById("main"), statusEl = document.getElementById("status");
@@ -282,7 +294,8 @@ document.getElementById("mAvisos").onclick = () => { fecharMenu(); quiz = null; 
 document.getElementById("mAdmin").onclick = () => { fecharMenu(); quiz = null; tab = "admin"; open = null; editing = null; render(); scrollTo(0, 0); };
 document.getElementById("mSair").onclick = () => { fecharMenu(); logout(false); };
 document.getElementById("avisosVoltar").onclick = () => { tab = "home"; render(); };
-document.getElementById("fab").onclick = () => { tab = "novo"; open = null; editing = null; quiz = null; render(); scrollTo(0, 0); };
+document.getElementById("bellBtn").onclick = () => { fecharMenu(); tab = "alertas"; open = null; editing = null; quiz = null; render(); scrollTo(0, 0); };
+document.getElementById("fab").onclick = () => { novoTipo = null; tab = "novo"; open = null; editing = null; quiz = null; render(); scrollTo(0, 0); };
 const API = "https://script.google.com/macros/s/AKfycbyQ_Y86tOpS_-gDAJe11vc3jEsX0jwnlsW5rgnz-B-aQwY2n7szzs_ZpuOqsgkIhXgsRw/exec";
 async function call(fn, ...args) {
   let r;
@@ -301,7 +314,7 @@ function logout(expired) {
   setToken(""); me = null; items = null; quiz = null; tab = "home"; open = null; editing = null; showWho(); render();
 }
 function showWho() {
-  menuBtn.hidden = !me; fecharMenu();
+  menuBtn.hidden = !me; document.getElementById("bellBtn").hidden = !me; fecharMenu();
   document.getElementById("mAdmin").hidden = !(me && me.admin);
   document.getElementById("who").textContent = me ? "Olá, " + me.nome : "";
 }
@@ -358,10 +371,39 @@ function render() {
   if (tab === "admin") return main.append(adminView());
   if (tab === "novo" || editing) return main.append(formView(editing));
   if (!items) { main.append(el("div", "msg info", "Carregando as pendências…")); return; }
+  atualizarSino();
+  if (tab === "alertas") return main.append(alertasView());
   if (quiz) return main.append(quizView());
   if (open) { const it = items.find(x => x.id === open); if (it) return main.append(detailView(it)); open = null; }
   main.append(homeView());
 }
+
+// ---- sininho: lembretes de hoje e amanhã ----
+function lembretesProximos(dias) {
+  const t0 = dayNum(todayISO());
+  return (items || []).filter(i => i.tipo === "lembrete").filter(i => { const d = dayNum(i.data) - t0; return d >= 0 && d <= dias; })
+    .sort((a, b) => a.data.localeCompare(b.data));
+}
+function atualizarSino() {
+  const n = lembretesProximos(1).length, b = document.getElementById("bellN");
+  b.hidden = !n; b.textContent = String(n);
+  document.getElementById("bellBtn").setAttribute("aria-label", n ? n + " lembrete(s) para hoje e amanhã" : "Lembretes");
+}
+function alertasView() {
+  const wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "8px"; wrap.style.marginTop = "8px";
+  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "home"; render(); };
+  wrap.append(back, el("h2", "ltit", "🔔 Não esqueça!"));
+  const t0 = dayNum(todayISO());
+  const hojeAm = lembretesProximos(1), depois = lembretesProximos(14).filter(i => dayNum(i.data) - t0 > 1);
+  if (!hojeAm.length) wrap.append(el("p", "hint", "Nada para hoje nem amanhã. 🎉"));
+  hojeAm.forEach(it => wrap.append(linhaAlerta(it, t0)));
+  if (depois.length) { wrap.append(el("h2", "ltit", "Próximos dias")); depois.forEach(it => wrap.append(linhaAlerta(it, t0))); }
+  const add = el("button", "btn", "＋ Novo lembrete"); add.type = "button";
+  add.onclick = () => { novoTipo = "lembrete"; tab = "novo"; render(); scrollTo(0, 0); };
+  wrap.append(add);
+  return wrap;
+}
+function linhaAlerta(it, t0) { const r = linha(it, t0); r.onclick = () => { tab = "home"; open = it.id; render(); scrollTo(0, 0); }; return r; }
 
 function visiveis() {
   return items.filter(i => (filtroTipo === "tudo" || i.tipo === filtroTipo) && (!filtroMat || materiaDe(i) === filtroMat));
@@ -372,7 +414,7 @@ function homeView() {
   // filtros
   const f = el("div", "filtros");
   const seg = el("div", "seg");
-  [["tudo", "Tudo"], ["prova", "Provas"], ["tema", "Temas"]].forEach(([v, t]) => {
+  [["tudo", "Tudo"], ["prova", "Provas"], ["tema", "Temas"], ["lembrete", "🔔"]].forEach(([v, t]) => {
     const b = el("button", null, t); b.type = "button"; b.setAttribute("aria-pressed", String(filtroTipo === v));
     b.onclick = () => { filtroTipo = v; render(); }; seg.append(b);
   });
@@ -408,7 +450,7 @@ function homeView() {
     c.setAttribute("aria-label", d + " de " + MESES[am - 1] + (its.length ? ", " + its.length + " pendência(s)" : ""));
     c.append(el("span", "n", String(d)));
     const dots = el("span", "dots");
-    its.slice(0, 4).forEach(i => { const dt = el("i"); const c = corDe(materiaDe(i)); dt.style.background = c; dt.style.color = c; if (i.tipo === "tema") dt.className = "t"; dots.append(dt); });
+    its.slice(0, 4).forEach(i => { const dt = el("i"); const c = corDe(materiaDe(i)); dt.style.background = c; dt.style.color = c; if (i.tipo === "tema") dt.className = "t"; if (i.tipo === "lembrete") { dt.className = "l"; dt.style.background = ""; } dots.append(dt); });
     c.append(dots);
     c.onclick = () => { diaSel = diaSel === iso ? null : iso; render(); };
     grid.append(c);
@@ -528,11 +570,12 @@ function linha(it, t0) {
   const r = el("button", "linha"); r.type = "button";
   r.style.setProperty("--c", corDe(materiaDe(it)));
   const [y, m, d] = it.data.split("-").map(Number);
-  const ready = it.tipo === "tema" ? !!it.caderno : !!it.resumo;
+  const ready = it.tipo === "lembrete" ? false : it.tipo === "tema" ? !!it.caderno : !!it.resumo;
+  if (it.tipo === "lembrete") r.style.setProperty("--c", "var(--lemb)");
   r.append(
     el("span", "ld", String(d).padStart(2, "0") + "/" + String(m).padStart(2, "0")),
-    el("span", "lm", materiaDe(it)),
-    el("span", "tag " + it.tipo, it.tipo === "tema" ? "TEMA" : nomeDe(it).toUpperCase()),
+    el("span", "lm", it.tipo === "lembrete" ? "🔔 " + oQueDe(it) : materiaDe(it)),
+    el("span", "tag " + it.tipo, it.tipo === "lembrete" ? ({ levar: "LEVAR", entregar: "ENTREGAR" }[subDe(it)] || "LEMBRETE") : it.tipo === "tema" ? "TEMA" : nomeDe(it).toUpperCase()),
     el("span", "lr" + (diff >= 0 && diff <= 1 ? " soon" : ""), (ready ? "✓ " : "") + rel(diff))
   );
   r.onclick = () => { open = it.id; render(); scrollTo(0, 0); };
@@ -546,12 +589,19 @@ function detailView(it) {
   const h = parseHead(it.cabeca);
   const head = el("div", "card dhead " + it.tipo); head.style.gridTemplateColumns = "auto 1fr"; head.style.alignItems = "center";
   const inf = el("div"); inf.style.minWidth = "0";
-  inf.append(el("div", "hint", it.tipo === "tema" ? "Tema de casa" : nomeDe(it)), el("h2", null, materiaDe(it)),
-    el("div", "sub" + (diff >= 0 && diff <= 1 ? " soon" : ""), (it.tipo === "tema" ? "entrega " : "") + rel(diff) + (h.professor ? " · Prof. " + h.professor : "")));
+  const lemb = it.tipo === "lembrete";
+  inf.append(el("div", "hint", lemb ? ({ levar: "🔔 Levar para a aula", entregar: "🔔 Entregar no CNEC Digital" }[subDe(it)] || "🔔 Lembrete") : it.tipo === "tema" ? "Tema de casa" : nomeDe(it)),
+    el("h2", null, lemb ? oQueDe(it) : materiaDe(it)),
+    el("div", "sub" + (diff >= 0 && diff <= 1 ? " soon" : ""), (it.tipo === "tema" ? "entrega " : "") + rel(diff) + (lemb && matLembrete(it) ? " · " + matLembrete(it) : "") + (h.professor ? " · Prof. " + h.professor : "")));
   head.append(dateEl(it.data), inf);
   wrap.append(back, head);
-  if (h.corpo) { const b = el("div", "block"); b.append(el("h3", null, it.tipo === "tema" ? "O que foi pedido" : "Conteúdos que caem"), renderText(h.corpo)); wrap.append(b); }
-  if (it.tipo === "tema") {
+  if (lemb) {
+    const det = textoEditavel(it); const extra = det.split("\n").slice(1).join("\n").trim();
+    if (extra) { const b = el("div", "block"); b.append(el("h3", null, "Detalhes"), renderText(extra)); wrap.append(b); }
+  }
+  if (h.corpo && !lemb) { const b = el("div", "block"); b.append(el("h3", null, it.tipo === "tema" ? "O que foi pedido" : "Conteúdos que caem"), renderText(h.corpo)); wrap.append(b); }
+  if (lemb) { /* lembrete não tem resumo nem simulado */ }
+  else if (it.tipo === "tema") {
     const b = el("div", "block caderno"); const t = el("h3", null, "Respostas para o caderno");
     if (it.caderno) { const cp = el("button", "small", "Copiar"); cp.type = "button"; cp.onclick = () => { navigator.clipboard.writeText(it.caderno).then(() => { cp.textContent = "Copiado"; setTimeout(() => cp.textContent = "Copiar", 1500); }, () => {}); }; t.append(cp); }
     b.append(t, it.caderno ? renderText(it.caderno) : el("p", "hint", "As respostas aparecem aqui em até 3 horas depois do cadastro."));
@@ -652,31 +702,39 @@ function printBox(txt, tipo, mat, data, prof, sync) {
 
 function formView(it) {
   const card = el("section", "card"); card.style.marginTop = "8px";
-  card.append(el("h2", null, it ? "Editar pendência" : "Cadastrar prova ou tema"));
+  card.append(el("h2", null, it ? "Editar pendência" : "Cadastrar prova, tema ou lembrete"));
   if (it) { const back = el("button", "back", "‹ Cancelar edição"); back.type = "button"; back.onclick = () => { editing = null; render(); }; card.prepend(back); }
   else { const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "home"; render(); }; card.prepend(back);
     card.append(el("p", "hint", "O resumo (provas) ou as respostas (temas) aparecem em até 3 horas.")); }
   const f = el("div", "fields");
-  const tipo = select("f-tipo", [["prova", "Prova / teste"], ["tema", "Tema de casa"]], it ? it.tipo : "prova");
+  const tipo = select("f-tipo", [["prova", "Prova / teste"], ["tema", "Tema de casa"], ["lembrete", "🔔 Lembrete"]], it ? it.tipo : (novoTipo || "prova"));
+  const sub = select("f-sub", [["levar", "Levar material para a aula"], ["entregar", "Entregar no CNEC Digital"], ["outro", "Outro"]], it && it.tipo === "lembrete" ? subDe(it) : "levar");
   const nome = select("f-nome", [["Prova", "Prova"], ["Teste", "Teste"], ["Trabalho", "Trabalho"], ["Simulado", "Simulado"], ["Recuperação", "Recuperação"]], it && it.tipo === "prova" ? nomeDe(it) : "Prova");
-  const mat = select("f-mat", [["", "Escolha a matéria"], ...SUBJ.map(s => [s, s])], it ? materiaDe(it) : "");
-  if (it && !SUBJ.includes(materiaDe(it))) { const o = el("option", null, materiaDe(it)); o.value = materiaDe(it); mat.append(o); mat.value = materiaDe(it); }
+  const mat = select("f-mat", [["", "Escolha a matéria"], ...SUBJ.map(s => [s, s])], it ? (it.tipo === "lembrete" ? matLembrete(it) : materiaDe(it)) : "");
+  if (it && it.tipo !== "lembrete" && !SUBJ.includes(materiaDe(it))) { const o = el("option", null, materiaDe(it)); o.value = materiaDe(it); mat.append(o); mat.value = materiaDe(it); }
   const data = el("input"); data.type = "date"; data.id = "f-data"; data.value = it ? it.data : "";
   const h = it ? parseHead(it.cabeca) : {};
   const prof = select("f-prof", [["", "(opcional)"], ...TEACHERS.map(([n, m]) => [n, n + " — " + m])], h.professor || "");
   const txt = el("textarea"); txt.id = "f-txt"; txt.rows = 6; txt.value = it ? textoEditavel(it) : "";
   const txtL = field("", txt, true);
   const nomeL = field("Tipo de avaliação", nome);
+  const subL = field("Que lembrete?", sub);
+  const matL = field("Matéria", mat);
+  const profL = field("Professor(a)", prof, true);
   const dica = el("p", "hint"); dica.hidden = true;
   const sync = () => {
-    const tema = tipo.value === "tema";
-    nomeL.hidden = tema;
-    txtL.firstChild.textContent = tema ? "Questões / atividades do tema (cole o enunciado completo)" : "Conteúdos que caem (um por linha)";
-    txt.placeholder = tema ? "1) ...\n2) ..." : "Cadeia alimentar\nPirâmides ecológicas";
-    if (tema && !it && mat.value && !data.dataset.manual) { const nc = nextClass(mat.value); if (nc) { data.value = nc; const [y, m, d] = nc.split("-").map(Number); dica.hidden = false; dica.textContent = "Data pela grade: próxima aula de " + mat.value + " (" + WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ", " + d + " " + MO[m - 1] + "). Pode mudar."; } }
+    const tema = tipo.value === "tema", lemb = tipo.value === "lembrete";
+    nomeL.hidden = tema || lemb; subL.hidden = !lemb; profL.hidden = lemb;
+    matL.firstChild.textContent = lemb ? "Matéria (opcional)" : "Matéria";
+    mat.options[0].textContent = lemb ? "Sem matéria" : "Escolha a matéria";
+    txt.rows = lemb ? 3 : 6;
+    txtL.firstChild.textContent = lemb ? ({ levar: "O que levar? (1ª linha = título)", entregar: "O que entregar no CNEC? (1ª linha = título)" }[sub.value] || "Lembrete (1ª linha = título)")
+      : tema ? "Questões / atividades do tema (cole o enunciado completo)" : "Conteúdos que caem (um por linha)";
+    txt.placeholder = lemb ? (sub.value === "entregar" ? "Atividade 3 de Geografia\nPostar como PDF" : "Livro de Física\nCalculadora e régua") : tema ? "1) ...\n2) ..." : "Cadeia alimentar\nPirâmides ecológicas";
+    if (((tema) || (lemb && sub.value === "levar")) && !it && mat.value && !data.dataset.manual) { const nc = nextClass(mat.value); if (nc) { data.value = nc; const [y, m, d] = nc.split("-").map(Number); dica.hidden = false; dica.textContent = "Data pela grade: próxima aula de " + mat.value + " (" + WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ", " + d + " " + MO[m - 1] + "). Pode mudar."; } }
   };
-  tipo.onchange = sync; mat.onchange = sync; data.oninput = () => { data.dataset.manual = "1"; dica.hidden = true; };
-  f.append(field("Tipo", tipo), nomeL, field("Matéria", mat), field("Data", data), field("Professor(a)", prof, true), txtL);
+  tipo.onchange = sync; mat.onchange = sync; sub.onchange = sync; data.oninput = () => { data.dataset.manual = "1"; dica.hidden = true; };
+  f.append(field("Tipo", tipo), nomeL, subL, matL, field("Data", data), profL, txtL);
   if (me && me.admin && !it) card.append(printBox(txt, tipo, mat, data, prof, sync));
   card.append(f, dica);
   const go = el("button", "btn", it ? "Salvar alterações" : "Cadastrar"); go.type = "button";
@@ -686,7 +744,7 @@ function formView(it) {
   go.onclick = async () => {
     msg.hidden = true; go.disabled = true;
     try {
-      const r = await call("salvar", { id: it ? it.id : "", tipo: tipo.value, nome: nome.value, materia: mat.value, data: data.value, professor: prof.value, texto: txt.value, token });
+      const r = await call("salvar", { id: it ? it.id : "", tipo: tipo.value, sub: sub.value, nome: nome.value, materia: mat.value, data: data.value, professor: prof.value, texto: txt.value, token });
       editing = null; tab = "home"; open = r.id; items = null; render(); await load();
     } catch (e) {
       go.disabled = false; msg.hidden = false; msg.className = "msg err"; msg.textContent = (e && e.message) || "Não consegui salvar.";
