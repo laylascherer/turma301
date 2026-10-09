@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="Turma 301">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone-192.png">
-<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -197,6 +197,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
     <div class="menu card" id="menu" hidden>
       <div class="hint" id="who"></div>
       <button class="mitem" id="mRefresh" type="button">↻ Atualizar</button>
+      <button class="mitem" id="mInstalar" type="button">📲 Instalar app</button>
       <button class="mitem" id="mAvisos" type="button">🔔 Avisos no celular</button>
       <button class="mitem" id="mAdmin" type="button" hidden>👥 Quem acessou</button>
       <button class="mitem" id="mSair" type="button">↩ Sair</button>
@@ -290,6 +291,38 @@ function fecharMenu() { menuEl.hidden = true; menuBtn.setAttribute("aria-expande
 menuBtn.onclick = () => { menuEl.hidden = !menuEl.hidden; menuBtn.setAttribute("aria-expanded", String(!menuEl.hidden)); };
 document.addEventListener("click", e => { if (!menuEl.hidden && !menuEl.contains(e.target) && e.target !== menuBtn) fecharMenu(); });
 document.getElementById("mRefresh").onclick = () => { fecharMenu(); statusEl.textContent = "Atualizando…"; load(); };
+// ---- instalar como app ----
+let pedidoInstalar = null;
+const jaInstalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; });
+window.addEventListener("appinstalled", () => { pedidoInstalar = null; document.getElementById("mInstalar").hidden = true; });
+if (jaInstalado()) document.getElementById("mInstalar").hidden = true;
+document.getElementById("mInstalar").onclick = async () => {
+  fecharMenu();
+  if (pedidoInstalar) { pedidoInstalar.prompt(); try { await pedidoInstalar.userChoice; } catch (e) {} pedidoInstalar = null; return; }
+  tab = "instalar"; open = null; editing = null; quiz = null; render(); scrollTo(0, 0);
+};
+function instalarView() {
+  const ua = navigator.userAgent || "";
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in document);
+  const card = el("section", "card"); card.style.marginTop = "8px";
+  const back = el("button", "back", "‹ Voltar"); back.type = "button"; back.onclick = () => { tab = "home"; render(); };
+  card.append(back, el("h2", null, "📲 Instalar o app Turma 301"));
+  const passos = ios ? [
+    "Abra este site no Safari (no Chrome do iPhone não aparece a opção).",
+    "Toque no botão Compartilhar ⬆ (quadrado com seta, embaixo da tela).",
+    "Role a lista e toque em \"Adicionar à Tela de Início\".",
+    "Toque em \"Adicionar\". O ícone 301 aparece junto dos seus apps."
+  ] : [
+    "Abra este site no Chrome.",
+    "Toque nos três pontinhos ⋮ no canto de cima.",
+    "Toque em \"Instalar app\" (ou \"Adicionar à tela inicial\").",
+    "Confirme em \"Instalar\". O ícone 301 aparece junto dos seus apps."
+  ];
+  const ol = el("ol", "txt"); passos.forEach(p => ol.append(el("li", null, p)));
+  card.append(ol, el("p", "hint", "Depois é só abrir pelo ícone: o app abre em tela cheia e já entra com o seu login."));
+  return card;
+}
 document.getElementById("mAvisos").onclick = () => { fecharMenu(); quiz = null; tab = "avisos"; open = null; editing = null; render(); scrollTo(0, 0); };
 document.getElementById("mAdmin").onclick = () => { fecharMenu(); quiz = null; tab = "admin"; open = null; editing = null; render(); scrollTo(0, 0); };
 document.getElementById("mSair").onclick = () => { fecharMenu(); logout(false); };
@@ -368,6 +401,7 @@ function render() {
   document.getElementById("addcal").hidden = !(me && tab === "avisos");
   if (!me) return main.append(loginView());
   if (tab === "avisos") return;
+  if (tab === "instalar") return main.append(instalarView());
   if (tab === "admin") return main.append(adminView());
   if (tab === "novo" || editing) return main.append(formView(editing));
   if (!items) { main.append(el("div", "msg info", "Carregando as pendências…")); return; }
@@ -820,5 +854,6 @@ function adminView() {
 })();
 setInterval(() => { if (me && !editing && tab !== "novo" && tab !== "admin" && !document.hidden) load(); }, 5 * 60 * 1000);
 </script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
 </body>
 </html>
